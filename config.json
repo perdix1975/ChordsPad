@@ -1,0 +1,115 @@
+{
+  "_comment": "Κάθε κουμπί έχει: label (κείμενο), play (αρχείο mp3 χωρίς .mp3, ή null), insert (κείμενο που εισάγεται, ή null), bg (χρώμα φόντου), fg (χρώμα γραμμάτων)",
+  "_comment2": "Για να κρύψεις ένα κουμπί βάλε hidden: true. Η διάταξη είναι σειρές (rows) από κουμπιά.",
+
+  "window": {
+    "title": "Chords Pad",
+    "always_on_top": true,
+    "chords_dir": "chords"
+  },
+
+  "rows": [
+    {
+      "_comment": "--- Επικεφαλίδες στηλών ---",
+      "is_header": true,
+      "labels": [ "Play Chord", "", "Insert Ch" ]
+    },
+    { "buttons": [
+      { "label": "A",   "play": "A",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Am",  "play": "Am",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "A",   "play": "A",   "insert": "[A]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Am",  "play": "Am",  "insert": "[Am]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "Bb",  "play": "Bb",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Bbm", "play": "Bbm", "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Bb",  "play": "Bb",  "insert": "[Bb]",  "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Bbm", "play": "Bbm", "insert": "[Bbm]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "B",   "play": "B",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Bm",  "play": "Bm",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "B",   "play": "B",   "insert": "[B]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Bm",  "play": "Bm",  "insert": "[Bm]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "C",   "play": "C",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Cm",  "play": "Cm",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "C",   "play": "C",   "insert": "[C]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Cm",  "play": "Cm",  "insert": "[Cm]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "C#",  "play": "Ch",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "C#m", "play": "Chm", "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "C#",  "play": "Ch",  "insert": "[C#]",  "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "C#m", "play": "Chm", "insert": "[C#m]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "D",   "play": "D",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Dm",  "play": "Dm",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "D",   "play": "D",   "insert": "[D]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Dm",  "play": "Dm",  "insert": "[Dm]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "D#",  "play": "Dh",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "D#m", "play": "Dhm", "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "D#",  "play": "Dh",  "insert": "[D#]",  "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "D#m", "play": "Dhm", "insert": "[D#m]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "E",   "play": "E",   "insert": null,  "bg": "#cccccc", "fg": "#cc00cc" },
+      { "label": "Em",  "play": "Em",  "insert": null,  "bg": "#cccccc", "fg": "#cc00cc" },
+      { "label": "E",   "play": "E",   "insert": "[E]",   "bg": "#d4d0c8", "fg": "#cc00cc" },
+      { "label": "Em",  "play": "Em",  "insert": "[Em]",  "bg": "#d4d0c8", "fg": "#cc00cc" }
+    ]},
+    { "buttons": [
+      { "label": "F",   "play": "F",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Fm",  "play": "Fm",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "F",   "play": "F",   "insert": "[F]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Fm",  "play": "Fm",  "insert": "[Fm]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "F#",  "play": "Fh",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "F#m", "play": "Fhm", "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "F#",  "play": "Fh",  "insert": "[F#]",  "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "F#m", "play": "Fhm", "insert": "[F#m]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "G",   "play": "G",   "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Gm",  "play": "Gm",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "G",   "play": "G",   "insert": "[G]",   "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Gm",  "play": "Gm",  "insert": "[Gm]",  "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "G#",  "play": "Gh",  "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "G#m", "play": "Ghm", "insert": null,  "bg": "#cccccc", "fg": "#444444" },
+      { "label": "G#",  "play": "Gh",  "insert": "[G#]",  "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "G#m", "play": "Ghm", "insert": "[G#m]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    {
+      "_comment": "--- Separator ---",
+      "is_separator": true
+    },
+    { "buttons": [
+      { "label": "Adim", "play": "Adim", "insert": null,     "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Ddim", "play": "Ddim", "insert": null,     "bg": "#cccccc", "fg": "#444444" },
+      { "label": "Adim", "play": "Adim", "insert": "[Adim]", "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Ddim", "play": "Ddim", "insert": "[Ddim]", "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    { "buttons": [
+      { "label": "Edim", "play": "Edim", "insert": null,     "bg": "#cccccc", "fg": "#444444" },
+      { "label": "(",  "play": null,   "insert": "(",        "bg": "#d4d0c8", "fg": "#000000" },      
+      { "label": "Edim", "play": "Edim", "insert": "[Edim]", "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": ")",  "play": null,   "insert": ")",        "bg": "#d4d0c8", "fg": "#000000" }
+    ]},
+    {
+      "is_separator": true
+    },
+    { "buttons": [
+      { "label": "S. C.", "play": null, "insert": "σόλο κουπλέ", "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "S. R.", "play": null, "insert": "σόλο ρεφρέν", "bg": "#d4d0c8", "fg": "#000000" },
+      { "label": "Undo",         "play": null, "insert": "__UNDO__",    "bg": "#ff9999", "fg": "#cc0000" },
+      { "label": "δις",  "play": null,   "insert": "δις",    "bg": "#ffff99", "fg": "#9900ff" }
+    ]}
+  ]
+}
