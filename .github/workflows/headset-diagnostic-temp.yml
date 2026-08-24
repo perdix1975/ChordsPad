@@ -1,0 +1,206 @@
+name: TEMP Headset Diagnostic APK
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'HEADSET_DIAGNOSTIC_TRIGGER.md'
+      - '.github/workflows/headset-diagnostic-temp.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Android SDK 35
+        run: sdkmanager 'platform-tools' 'platforms;android-35' 'build-tools;35.0.0'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Create isolated diagnostic project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p headset-build/app/src/main/java/gr/kingpool/headsetdiag
+
+          cat > headset-build/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = 'HeadsetDiagnostic'
+          include ':app'
+          EOF
+
+          cat > headset-build/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.2' apply false
+          }
+          EOF
+
+          cat > headset-build/app/build.gradle <<'EOF'
+          plugins { id 'com.android.application' }
+          android {
+              namespace 'gr.kingpool.headsetdiag'
+              compileSdk 35
+              defaultConfig {
+                  applicationId 'gr.kingpool.headsetdiag'
+                  minSdk 26
+                  targetSdk 35
+                  versionCode 3
+                  versionName '1.2-z3'
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF
+
+          cat > headset-build/app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:allowBackup="false" android:label="Headset Diagnostic" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+              <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+
+          cat > headset-build/app/src/main/java/gr/kingpool/headsetdiag/MainActivity.java <<'EOF'
+          package gr.kingpool.headsetdiag;
+
+          import android.app.Activity;
+          import android.content.ClipData;
+          import android.content.ClipboardManager;
+          import android.database.ContentObserver;
+          import android.media.AudioAttributes;
+          import android.media.AudioFocusRequest;
+          import android.media.AudioFormat;
+          import android.media.AudioManager;
+          import android.media.AudioTrack;
+          import android.media.session.MediaSession;
+          import android.media.session.PlaybackState;
+          import android.os.Bundle;
+          import android.os.Handler;
+          import android.os.Looper;
+          import android.provider.Settings;
+          import android.view.InputDevice;
+          import android.view.KeyEvent;
+          import android.view.ViewGroup;
+          import android.widget.Button;
+          import android.widget.LinearLayout;
+          import android.widget.ScrollView;
+          import android.widget.TextView;
+          import java.text.SimpleDateFormat;
+          import java.util.Date;
+          import java.util.Locale;
+
+          public class MainActivity extends Activity {
+            final Handler main = new Handler(Looper.getMainLooper());
+            final StringBuilder log = new StringBuilder();
+            final SimpleDateFormat clock = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
+            TextView out;
+            AudioManager audio;
+            MediaSession session;
+            AudioFocusRequest focus;
+            AudioTrack track;
+            volatile boolean running;
+            ContentObserver volumeObserver;
+            int lastVolume;
+
+            @Override public void onCreate(Bundle b) {
+              super.onCreate(b);
+              audio = (AudioManager)getSystemService(AUDIO_SERVICE);
+              buildUi();
+              session = new MediaSession(this, "Z3Diagnostic");
+              session.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+              session.setCallback(new MediaSession.Callback() {
+                @Override public boolean onMediaButtonEvent(android.content.Intent i) {
+                  KeyEvent e = i.getParcelableExtra(android.content.Intent.EXTRA_KEY_EVENT);
+                  if (e != null) key("MediaSession", e); else add("MediaSession · χωρίς KeyEvent");
+                  return true;
+                }
+              });
+              lastVolume = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+              volumeObserver = new ContentObserver(main) {
+                @Override public void onChange(boolean self) {
+                  int n = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+                  if (n != lastVolume) { add("AudioVolume · " + lastVolume + " → " + n); lastVolume = n; }
+                }
+              };
+              getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, volumeObserver);
+              add("Έναρξη · " + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL + " · Android " + android.os.Build.VERSION.RELEASE);
+              add("Πάτησε ΑΠΟΚΛΕΙΣΤΙΚΗ MEDIA ΔΟΚΙΜΗ και μετά 1×, 2×, 3×, παρατεταμένο, +, −.");
+            }
+
+            void buildUi() {
+              LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
+              int p=(int)(16*getResources().getDisplayMetrics().density); root.setPadding(p,p,p,p);
+              TextView title=new TextView(this); title.setText("Headset Diagnostic — Z3"); title.setTextSize(22); root.addView(title);
+              Button start=new Button(this); start.setText("ΑΠΟΚΛΕΙΣΤΙΚΗ MEDIA ΔΟΚΙΜΗ"); start.setOnClickListener(v->startExclusive()); root.addView(start);
+              Button stop=new Button(this); stop.setText("Σταμάτημα"); stop.setOnClickListener(v->stopExclusive("χειροκίνητα")); root.addView(stop);
+              Button copy=new Button(this); copy.setText("Αντιγραφή log"); copy.setOnClickListener(v->{ ((ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("Z3 diagnostic",log.toString())); add("Το log αντιγράφηκε"); }); root.addView(copy);
+              ScrollView scroll=new ScrollView(this); out=new TextView(this); out.setTextSize(14); out.setTextIsSelectable(true); scroll.addView(out);
+              root.addView(scroll,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0,1f)); setContentView(root);
+            }
+
+            void startExclusive() {
+              if (running) { add("Ήδη ενεργή"); return; }
+              AudioAttributes attrs=new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build();
+              focus=new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(attrs).setOnAudioFocusChangeListener(c->{ add("AudioFocus · "+c); if(c==AudioManager.AUDIOFOCUS_LOSS) stopExclusive("focus loss"); }).build();
+              add("AudioFocus request · result="+audio.requestAudioFocus(focus));
+              int rate=44100, min=AudioTrack.getMinBufferSize(rate,AudioFormat.CHANNEL_OUT_MONO,AudioFormat.ENCODING_PCM_16BIT), buf=Math.max(min,4096);
+              track=new AudioTrack.Builder().setAudioAttributes(attrs).setAudioFormat(new AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT).setSampleRate(rate).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build()).setBufferSizeInBytes(buf).setTransferMode(AudioTrack.MODE_STREAM).build();
+              session.setPlaybackState(new PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY|PlaybackState.ACTION_PAUSE|PlaybackState.ACTION_PLAY_PAUSE|PlaybackState.ACTION_SKIP_TO_NEXT|PlaybackState.ACTION_SKIP_TO_PREVIOUS).setState(PlaybackState.STATE_PLAYING,0,1f).build());
+              session.setActive(true); running=true; track.play();
+              new Thread(()->{ short[] z=new short[2048]; while(running&&track!=null){ try{ track.write(z,0,z.length,AudioTrack.WRITE_BLOCKING); }catch(Exception e){ add("AudioTrack error · "+e); break; } } },"SilentAudio").start();
+              add("ΑΠΟΚΛΕΙΣΤΙΚΗ MEDIA ΔΟΚΙΜΗ: ΕΝΕΡΓΗ · MediaSession PLAYING + silent AudioTrack");
+            }
+
+            void stopExclusive(String why) {
+              if(!running && (session==null || !session.isActive())) return;
+              running=false;
+              try{ if(track!=null){ track.pause(); track.flush(); track.stop(); track.release(); } }catch(Exception ignored){} track=null;
+              if(session!=null){ session.setPlaybackState(new PlaybackState.Builder().setState(PlaybackState.STATE_STOPPED,0,0f).build()); session.setActive(false); }
+              if(focus!=null){ audio.abandonAudioFocusRequest(focus); focus=null; }
+              add("STOP · "+why);
+            }
+
+            @Override public boolean dispatchKeyEvent(KeyEvent e){ key("Activity",e); return super.dispatchKeyEvent(e); }
+            void key(String channel, KeyEvent e){ InputDevice d=e.getDevice(); String dev=d==null?"unknown":d.getName()+" · id="+d.getId()+" · descriptor="+d.getDescriptor()+" · vendor="+d.getVendorId()+" · product="+d.getProductId(); add(channel+" · "+(e.getAction()==KeyEvent.ACTION_DOWN?"DOWN":e.getAction()==KeyEvent.ACTION_UP?"UP":"OTHER")+" · "+KeyEvent.keyCodeToString(e.getKeyCode())+" · repeat="+e.getRepeatCount()+" · long="+e.isLongPress()+" · scan="+e.getScanCode()+" · source=0x"+Integer.toHexString(e.getSource())+" · "+dev); }
+            void add(String s){ main.post(()->{ log.append(clock.format(new Date())).append(" · ").append(s).append('\n'); if(out!=null)out.setText(log.toString()); }); }
+            @Override protected void onPause(){ stopExclusive("onPause"); super.onPause(); }
+            @Override protected void onDestroy(){ stopExclusive("onDestroy"); if(volumeObserver!=null)getContentResolver().unregisterContentObserver(volumeObserver); if(session!=null)session.release(); super.onDestroy(); }
+          }
+          EOF
+
+      - name: Build APK
+        working-directory: headset-build
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: headset-diagnostic-apk
+          path: headset-build/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
