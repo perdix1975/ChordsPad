@@ -5,18 +5,13 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/headset-diagnostic-temp.yml'
-  pull_request:
-    branches: [master]
-    paths:
-      - 'HEADSET_DIAGNOSTIC_TRIGGER.md'
-      - '.github/workflows/headset-diagnostic-temp.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: headset-diagnostic-${{ github.event.pull_request.number || github.ref }}
+  group: headset-diagnostic-public-build
   cancel-in-progress: true
 
 jobs:
@@ -27,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: perdix1975/AndroidPdfViewer
-          ref: temp/headset-diagnostic
+          ref: 71f40b9cc5372e4ec04f569c91add38d71e7b46a
           path: diag
 
       - uses: actions/setup-java@v4
@@ -69,7 +64,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -B headset-diagnostic-output origin/master
-          printf 'BUILD_OK\n%s\n' "${GITHUB_SHA}" > HEADSET_DIAGNOSTIC_BUILD_OK.txt
+          printf 'BUILD_OK\nsource=71f40b9cc5372e4ec04f569c91add38d71e7b46a\nworkflow=%s\n' "${GITHUB_SHA}" > HEADSET_DIAGNOSTIC_BUILD_OK.txt
           git add HEADSET_DIAGNOSTIC_BUILD_OK.txt
           git commit -m 'TEMP: headset diagnostic build OK' || true
           git push --force origin HEAD:headset-diagnostic-output
