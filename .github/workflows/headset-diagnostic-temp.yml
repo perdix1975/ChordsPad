@@ -51,13 +51,28 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: perdix1975/ChordsPad
         run: |
           cp diag/sample/build/outputs/apk/debug/sample-debug.apk Headset-Diagnostic-Z3.apk
           if gh release view headset-diagnostic-temp >/dev/null 2>&1; then
             gh release upload headset-diagnostic-temp Headset-Diagnostic-Z3.apk --clobber
             gh release edit headset-diagnostic-temp --title 'TEMP — Headset Diagnostic Z3' --notes 'Απομονωμένο diagnostic APK. Δεν περιέχει KingPool/Firebase δεδομένα.'
           else
-            gh release create headset-diagnostic-temp Headset-Diagnostic-Z3.apk --title 'TEMP — Headset Diagnostic Z3' --notes 'Απομονωμένο diagnostic APK. Δεν περιέχει KingPool/Firebase δεδομένα.'
+            gh release create headset-diagnostic-temp Headset-Diagnostic-Z3.apk --target master --title 'TEMP — Headset Diagnostic Z3' --notes 'Απομονωμένο diagnostic APK. Δεν περιέχει KingPool/Firebase δεδομένα.'
+          fi
+
+      - name: Publish release marker
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: perdix1975/ChordsPad
+        run: |
+          CONTENT=$(printf 'RELEASE_OK\nrun=%s\nsha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" | base64 -w0)
+          EXISTING_SHA=$(gh api repos/perdix1975/ChordsPad/contents/HEADSET_DIAGNOSTIC_RELEASE_OK.txt --jq .sha 2>/dev/null || true)
+          if [ -n "$EXISTING_SHA" ]; then
+            gh api repos/perdix1975/ChordsPad/contents/HEADSET_DIAGNOSTIC_RELEASE_OK.txt -X PUT -f message='TEMP: headset diagnostic release OK' -f content="$CONTENT" -f sha="$EXISTING_SHA" >/dev/null
+          else
+            gh api repos/perdix1975/ChordsPad/contents/HEADSET_DIAGNOSTIC_RELEASE_OK.txt -X PUT -f message='TEMP: headset diagnostic release OK' -f content="$CONTENT" >/dev/null
           fi
 
       - uses: actions/upload-artifact@v4
