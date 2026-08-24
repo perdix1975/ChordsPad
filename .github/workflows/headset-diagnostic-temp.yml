@@ -5,13 +5,17 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/headset-diagnostic-temp.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'HEADSET_DIAGNOSTIC_TRIGGER.md'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: headset-diagnostic-public-build
+  group: headset-diagnostic-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,6 +48,7 @@ jobs:
         run: gradle :sample:assembleDebug --no-daemon --stacktrace
 
       - name: Publish temporary diagnostic release
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -55,16 +60,8 @@ jobs:
             gh release create headset-diagnostic-temp Headset-Diagnostic-Z3.apk --title 'TEMP — Headset Diagnostic Z3' --notes 'Απομονωμένο diagnostic APK. Δεν περιέχει KingPool/Firebase δεδομένα.'
           fi
 
-      - name: Publish build marker
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git clone https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git marker
-          cd marker
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -B headset-diagnostic-output origin/master
-          printf 'BUILD_OK\nsource=71f40b9cc5372e4ec04f569c91add38d71e7b46a\nworkflow=%s\n' "${GITHUB_SHA}" > HEADSET_DIAGNOSTIC_BUILD_OK.txt
-          git add HEADSET_DIAGNOSTIC_BUILD_OK.txt
-          git commit -m 'TEMP: headset diagnostic build OK' || true
-          git push --force origin HEAD:headset-diagnostic-output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: headset-diagnostic-apk
+          path: diag/sample/build/outputs/apk/debug/sample-debug.apk
+          if-no-files-found: error
